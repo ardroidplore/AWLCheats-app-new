@@ -65,6 +65,29 @@ jobs:
 
           find . -path ./.git -prune -o -type f -print | sort
 
+      - name: Tambah ikon aplikasi
+        run: |
+          set -e
+          if [ -f ic_launcher_fg.png ] && [ -f ic_launcher_bg.png ]; then
+            mkdir -p app/src/main/res/mipmap-anydpi-v26 app/src/main/res/drawable-nodpi
+            mv ic_launcher_fg.png ic_launcher_bg.png app/src/main/res/drawable-nodpi/
+            for n in ic_launcher ic_launcher_round; do
+          cat > app/src/main/res/mipmap-anydpi-v26/$n.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+              <background android:drawable="@drawable/ic_launcher_bg" />
+              <foreground android:drawable="@drawable/ic_launcher_fg" />
+          </adaptive-icon>
+          EOF
+            done
+            if ! grep -q 'android:icon' app/src/main/AndroidManifest.xml; then
+              sed -i 's|<application|<application android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round"|' app/src/main/AndroidManifest.xml
+            fi
+            echo "Ikon dipasang."
+          else
+            echo "PERINGATAN: ic_launcher_fg.png / ic_launcher_bg.png tidak ada di repo, ikon dilewati."
+          fi
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
