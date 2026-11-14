@@ -68,25 +68,49 @@ jobs:
       - name: Tambah ikon aplikasi
         run: |
           set -e
-          if [ -f ic_launcher_fg.png ] && [ -f ic_launcher_bg.png ]; then
-            mkdir -p app/src/main/res/mipmap-anydpi-v26 app/src/main/res/drawable-nodpi
-            mv ic_launcher_fg.png ic_launcher_bg.png app/src/main/res/drawable-nodpi/
-            for n in ic_launcher ic_launcher_round; do
+          mkdir -p app/src/main/res/mipmap-anydpi-v26 app/src/main/res/drawable app/src/main/res/values
+
+          cat > app/src/main/res/values/ic_launcher_background.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <color name="ic_launcher_background">#2E7D32</color>
+          </resources>
+          EOF
+
+          cat > app/src/main/res/drawable/ic_launcher_foreground.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="108dp"
+              android:height="108dp"
+              android:viewportWidth="108"
+              android:viewportHeight="108">
+              <path
+                  android:fillColor="#FFFFFF"
+                  android:pathData="M40,58 H68 A10,10 0 0 1 68,78 H40 A10,10 0 0 1 40,58 Z" />
+              <path
+                  android:fillColor="#FFB300"
+                  android:pathData="M68,61 A7,7 0 1 1 68,75 A7,7 0 1 1 68,61 Z" />
+              <path
+                  android:fillColor="#FFB300"
+                  android:pathData="M54.00,23.50 L57.06,31.79 L65.89,32.14 L58.95,37.61 L61.35,46.11 L54.00,41.20 L46.65,46.11 L49.05,37.61 L42.11,32.14 L50.94,31.79 Z" />
+          </vector>
+          EOF
+
+          for n in ic_launcher ic_launcher_round; do
           cat > app/src/main/res/mipmap-anydpi-v26/$n.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-              <background android:drawable="@drawable/ic_launcher_bg" />
-              <foreground android:drawable="@drawable/ic_launcher_fg" />
+              <background android:drawable="@color/ic_launcher_background" />
+              <foreground android:drawable="@drawable/ic_launcher_foreground" />
+              <monochrome android:drawable="@drawable/ic_launcher_foreground" />
           </adaptive-icon>
           EOF
-            done
-            if ! grep -q 'android:icon' app/src/main/AndroidManifest.xml; then
-              sed -i 's|<application|<application android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round"|' app/src/main/AndroidManifest.xml
-            fi
-            echo "Ikon dipasang."
-          else
-            echo "PERINGATAN: ic_launcher_fg.png / ic_launcher_bg.png tidak ada di repo, ikon dilewati."
+          done
+
+          if ! grep -q 'android:icon' app/src/main/AndroidManifest.xml; then
+            sed -i 's|<application|<application android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round"|' app/src/main/AndroidManifest.xml
           fi
+          grep -n 'application' app/src/main/AndroidManifest.xml
 
       - uses: actions/setup-java@v4
         with:
